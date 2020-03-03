@@ -34,11 +34,11 @@ function sendEmail() {
           Logger.log('RIGA['+i+']: Month = '+m2+' Date = '+d2);
           Logger.log('Birth Year = '+y2+' Old = '+old);          
           var emailAddress = row[2];  // First column
-          var emailBCC = "brivio.stefano@gmail.com";
-          var emailReplyTo = "uccostamasnaga@gmail.com";
+          var emailBCC = "name.surname1@gmail.com";
+          var emailReplyTo = "name.surname2@gmail.com";
           var name = row[0];       // Third column
           var subject = "AUGURI!!!"
-          var body = "Tanti Auguri di buon compleanno " +name + " da tutta l'Unione Ciclistica COSTAMASNAGA!";
+          var body = "Tanti Auguri di buon compleanno " +name + " dalla nostra societa!";
           if (old>13)
           {
             templateId = teenTemplateId;
@@ -71,7 +71,7 @@ function sendEmailFromTemplate(templateId, emailAddress, subject, body, name, em
     Logger.log('copyDoc header :'+copyDoc.getHeader());
     
     var pdf = DriveApp.getFileById(copyId).getAs("application/pdf");
-    var subject = "Tanti Auguri di buon compleanno " +name + " da tutta l'Unione Ciclistica COSTAMASNAGA!";
+    var subject = "Tanti Auguri di buon compleanno " +name + " dalla nostra societa!";
     MailApp.sendEmail(emailAddress, subject, '  ', {
             htmlBody: body, 
             attachments: pdf,
