@@ -1,0 +1,87 @@
+function sendEmail() {
+  try{
+    // The code below logs the index of a sheet named "Compleanni"
+    var templateId = '1gU38cUdgFz6JdS1cJF8JJDOGq7NQPWKRiHPk1womlBw';
+    var teenTemplateId = '1BrlbWPGYU33t1XfxJtCqbvGuB3rldDm8PU-lnWKExAU';
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Compleanni");
+    if (sheet != null) {
+      Logger.log(sheet.getIndex());
+      Logger.log(sheet.getSheetName());
+    }
+    var startRow = 2;  // First row of data to process
+    var numRows = sheet.getLastRow()-1;   // Number of rows to process
+    Logger.log('Start Row = '+startRow+' Last Row = '+numRows);
+    var dataRange = sheet.getRange(startRow, 1, numRows, sheet.getLastColumn());
+    // Fetch values for each row in the Range.
+    var data = dataRange.getValues();
+    var i=0;
+    for (i in data) {
+      var row = data[i]; // BDAY dates to match with current date
+      var Sdate = new Date(); // current date to match with BDAY
+      var m1 = Sdate.getMonth()+1;
+      var d1 = Sdate.getDate();
+      var y1 = Sdate.getYear();
+      if(row[0]!=''){
+        var SsheetDate = row[1];
+        var m2 = SsheetDate.getMonth()+1;
+        var d2 = SsheetDate.getDate();
+
+        if ((d1 == d2)&&(m1 == m2))
+        {
+          var y2 = SsheetDate.getYear();
+          var old = y1-y2;
+          Logger.log('TODAY: Month = '+m1+' Day = '+d1);
+          Logger.log('RIGA['+i+']: Month = '+m2+' Date = '+d2);
+          Logger.log('Birth Year = '+y2+' Old = '+old);          
+          var emailAddress = row[2];  // First column
+          var emailBCC = "brivio.stefano@gmail.com";
+          var emailReplyTo = "uccostamasnaga@gmail.com";
+          var name = row[0];       // Third column
+          var subject = "AUGURI!!!"
+          var body = "Tanti Auguri di buon compleanno " +name + " da tutta l'Unione Ciclistica COSTAMASNAGA!";
+          if (old>13)
+          {
+            templateId = teenTemplateId;
+          }
+          sendEmailFromTemplate(templateId, emailAddress, subject, body, name, emailBCC, emailReplyTo, old);
+          Logger.log('SENT :'+emailAddress+'  '+subject+'  '+body);
+          var ch_i = Number(startRow) + Number(i);
+          sheet.getRange(ch_i,5).setValue('Inviato '+m1+'/'+d1+'/'+y1);
+          Logger.log('Changed sheet row = '+ch_i+'column = '+5);
+        }
+       }    
+     }
+   }catch(err){
+     Logger.log(err.lineNumber + ' - ' + err);
+   }
+}
+function sendEmailFromTemplate(templateId, emailAddress, subject, body, name, emailBCC, emailReplyTo, old) {
+  try{
+    var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd/MM/yyyy");
+    var copyId = DriveApp.getFileById(templateId).makeCopy(name).getId();
+    var copyDoc = DocumentApp.openById(copyId);
+    var copyBody = copyDoc.getBody();
+    {
+      copyBody.replaceText('#name#', name);
+      copyBody.replaceText('#today#', today_date);
+      copyBody.replaceText('#old#', old);
+      copyDoc.saveAndClose();
+    }
+    Logger.log('copyId :'+copyId);
+    Logger.log('copyDoc header :'+copyDoc.getHeader());
+    
+    var pdf = DriveApp.getFileById(copyId).getAs("application/pdf");
+    var subject = "Tanti Auguri di buon compleanno " +name + " da tutta l'Unione Ciclistica COSTAMASNAGA!";
+    MailApp.sendEmail(emailAddress, subject, '  ', {
+            htmlBody: body, 
+            attachments: pdf,
+            name: 'UC COSTAMASNAGA',
+            bcc: emailBCC,
+            replyTo: emailReplyTo});
+    Logger.log('SENT :'+emailAddress+'  '+subject+'  '+body)
+    // Delete temp file
+    DriveApp.getFileById(copyId).setTrashed(true);
+     }catch(err){
+     Logger.log(err.lineNumber + ' - ' + err);
+   }
+}
